@@ -58,6 +58,7 @@ Read individual rule files for detailed explanations and code examples:
 - [references/audio.md](references/audio.md) - Audio sync, beat detection, voiceover ducking
 - [references/components.md](references/components.md) - GradientMesh, GlassPanel, FilmGrain, ProductFrame, BrandIcon
 - [references/lottie.md](references/lottie.md) - @remotion/lottie integration, recommended sources
+- [references/multi-resolution.md](references/multi-resolution.md) - Multi-format rendering (16:9, 9:16, 1:1), safe zones, font scaling
 
 ## Workflow (MUST follow in order)
 
@@ -223,9 +224,21 @@ Tell the user the URL and WAIT for their feedback. Only proceed to render after 
 ### Step 6: Render (only after user approval)
 
 ```bash
-npm run render
-# or manually: npx remotion render --codec h264 --crf 16 --color-space bt709 --image-format png
+# Default 16:9 (YouTube / website)
+npx remotion render LaunchVideo --codec h264 --crf 16 --image-format png
+
+# Vertical 9:16 (TikTok / Reels / Shorts)
+npx remotion render LaunchVideo-Vertical --codec h264 --crf 16 --image-format png
+
+# Square 1:1 (Instagram / LinkedIn feed)
+npx remotion render LaunchVideo-Square --codec h264 --crf 16 --image-format png
 ```
+
+**Multi-resolution notes:**
+- The scaffold registers three Compositions in `Root.tsx` sharing the same `MainVideo` component.
+- Scenes should use **responsive layout** — percentage-based padding, flex layout, `useVideoConfig()` for dimensions — so they adapt across aspect ratios.
+- The **16:9 landscape** version is the primary design target. Vertical and square are secondary deliverables.
+- See [references/multi-resolution.md](references/multi-resolution.md) for safe zones, font scaling, and scene adaptation guidance.
 
 ## Premium vs Template
 
