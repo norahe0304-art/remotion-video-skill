@@ -121,6 +121,8 @@ AUDIT CHECKLIST (run mentally for each scene):
 - **Text appears too late:** Reduce `delay` parameter
 - **Too many features rushed:** Cut the weakest feature, give remaining ones more time
 - **UI mockup flashes by:** Minimum 4s (120f) for any dense UI
+- **SplitText/stagger not done before fade:** `delay + charCount × staggerFrames + 45f < durationInFrames`
+- **Animation still playing when scene cuts:** BLOCKING — extend scene or speed up animation
 
 ### Font Size Validation
 

@@ -25,9 +25,13 @@ Used by Stripe, Linear, Vercel, Arc for product launches. The secret: Acts 1, 3,
 ```
 ACT 1 — THE LOGO (0-4s) [MANDATORY]
   Brand logo/wordmark animation. REAL SVG downloaded from site.
-  Spring scale entrance (0→1), optional glow pulse or shimmer sweep.
-  Clean background (brand bg color), logo centered.
-  This is the FIRST FRAME — premium first impression, non-negotiable.
+  Spring scale entrance (0→1), shimmer sweep across logo.
+  NO TEXT under the logo — logo stands ALONE, pure and confident.
+  PREMIUM BACKGROUND required — NEVER plain white/black:
+    - GradientMesh with brand colors (opacity 0.05-0.08)
+    - Center glow pulse (radial-gradient breathing animation)
+    - Subtle conic-gradient radial lines (slow rotation)
+    - These layers create depth and luxury without distracting from the logo.
   Logo ONLY appears here and in ACT 5 (Close). NOT in middle acts.
 
 ACT 2 — THE HOOK (4-12s)

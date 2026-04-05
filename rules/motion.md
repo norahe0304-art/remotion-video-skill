@@ -55,6 +55,46 @@ Headlines NEVER fade in as a block. Split into characters with 40-80ms stagger:
 - **First 3 seconds:** must animate immediately — no slow fade from black
 - **Static limit:** never hold still >4 seconds — add glow pulse, float drift, cursor
 
+## IRON LAW: Animation Must Complete Before Scene Ends
+
+**Every animation (SplitText, Typewriter, stagger, CountUp, spring) MUST finish with breathing room BEFORE the scene transitions.** If text is still appearing when the fade starts, the video is broken.
+
+### Completion Budget Formula
+
+```
+animation_finish_frame = delay + (char_count × staggerFrames)   // SplitText
+animation_finish_frame = delay + (text.length / speed)           // Typewriter
+animation_finish_frame = delay + (item_count × stagger_gap)     // staggered items
+
+scene_transition_start = durationInFrames - 15                   // fade begins
+
+REQUIRED: animation_finish_frame + 45 < scene_transition_start
+          ↑ 45 frames (1.5s) minimum reading/breathing time
+```
+
+### How to Validate (Do This For EVERY Scene)
+
+After writing a scene, calculate:
+1. When does the LAST animation element finish appearing?
+2. When does the scene transition/fade begin?
+3. Is there at least **45 frames (1.5s)** between finish and transition?
+
+If NOT → either:
+- **Extend the scene** `durationInFrames`
+- **Reduce delay** so animation starts earlier
+- **Increase speed** so animation completes faster
+- **Cut content** — fewer words, fewer items
+
+### Common Traps
+
+| Trap | Why It Breaks | Fix |
+|------|--------------|-----|
+| SplitText with 30 chars × 2f stagger = 60f finish, in a 80f scene | Only 5f to read before fade | Extend scene to 120f or reduce stagger to 1.5f |
+| Typewriter with 60 chars at speed 1.5 = 40f, delay 30 = finishes at 70f, scene is 90f | Text finishes at 70f, fade at 75f, 5f to read | Start typing earlier (delay 10) or increase speed |
+| 6 icons with 6f stagger, delay 40 = finishes at 76f, scene is 90f | Last icon appears 14f before scene ends | Reduce delay to 25 or increase durationInFrames |
+
+**This is not a suggestion. This is a BLOCKING check. Fix before moving to the next scene.**
+
 ## Scene Entrance/Exit Uniformity
 
 All scenes must:

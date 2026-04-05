@@ -187,6 +187,41 @@ import { Brain, Zap, Shield, Eye, Code2, Globe } from "lucide-react";
 
 Mappings: AI→Brain, Speed→Zap, Security→Shield, Vision→Eye, Code→Code2, Global→Globe
 
+## Screenshot & Image Cropping Safety (MANDATORY)
+
+Downloaded screenshots and product images MUST display with ALL text and UI elements fully visible. Cropped text = broken video.
+
+### Rules
+
+1. **NEVER use `objectFit: "cover"` on product screenshots** — it crops content. Use `objectFit: "contain"` to guarantee nothing is cut off.
+2. **If the image is taller than the container:** Use `objectPosition: "top center"` ONLY when the bottom is decorative (footer, empty space). If the bottom has important text or UI, scale the image down to fit instead of cropping.
+3. **Before using ANY downloaded image in a scene:** Check the image dimensions. If the aspect ratio doesn't fit the container, adjust the container height to match — do NOT crop the image.
+4. **Test every screenshot at render resolution (1920x1080):** If any text is cut off at the edges, the image container is too small. Increase container size or reduce image scale.
+5. **Safe zone: 40px padding inside browser chrome / UI frames.** No screenshot content should touch the edge of the frame.
+
+### Anti-Patterns
+
+```tsx
+// BAD — crops bottom text
+<Img src={screenshot} style={{ width: "100%", height: 500, objectFit: "cover" }} />
+
+// GOOD — shows everything, scales to fit
+<Img src={screenshot} style={{ width: "100%", height: "auto", maxHeight: 600, objectFit: "contain" }} />
+
+// GOOD — if you must constrain height, show from top
+<Img src={screenshot} style={{ width: "100%", height: 560, objectFit: "cover", objectPosition: "top center" }} />
+// ↑ Only acceptable when bottom of image is non-essential
+```
+
+### Validation
+
+After placing any image in a scene, mentally check:
+- Can I read ALL text in the image at 1080p?
+- Is any UI element (button, label, badge) cut off at any edge?
+- If the image has a caption or footer, is it fully visible?
+
+If ANY text is cropped → fix the container dimensions before moving on.
+
 ## Asset Strategy: MANDATORY Real Assets (Enforced)
 
 **RULE: Every video MUST use real brand assets. No exceptions.**

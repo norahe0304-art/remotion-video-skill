@@ -147,7 +147,8 @@ Create files in `src/scenes/`: `LogoScene.tsx`, `HookScene.tsx`, `RevealScene.ts
 - Real brand SVG wordmark/logo — downloaded, NEVER hand-written
 - Spring scale entrance (0→1, damping 16, stiffness 50)
 - Shimmer sweep across logo (frame 40-80)
-- Clean bg, centered, premium first impression
+- **NO text under the logo** — logo stands alone, pure and confident
+- **Premium background required** — NEVER plain white/black. Add: GradientMesh (brand colors, low opacity 0.05-0.08), center glow pulse (radial-gradient breathing), subtle conic-gradient radial lines. The background sells luxury.
 - Logo appears ONLY in ACT 0 and ACT 5 — NOT in middle acts
 
 **Use REAL scraped assets.** Logo SVG from the site (NEVER hand-write). Product screenshots INSIDE UI chrome. Downloaded images at near-full width. See [rules/workflow.md](rules/workflow.md) Asset Strategy.
@@ -193,7 +194,33 @@ Before rendering, automatically validate every scene's timing:
 
 See [rules/taste.md](rules/taste.md) "Automatic Readability & Watchability Audit" for full checklist.
 
-### Step 5: Render
+**MANDATORY: Print Timing Audit Table after writing EVERY scene.** Do NOT proceed to the next scene without outputting this:
+
+```
+TIMING AUDIT — [SceneName] (durationInFrames: XXXf)
+| Element | Type | delay | chars/items | finish frame | breathing (scene end - finish) | PASS/FAIL |
+|---------|------|-------|-------------|-------------|-------------------------------|-----------|
+| "text"  | SplitText | 10 | 24 chars × 2f stagger | 58f | 92f | ✓ PASS |
+```
+
+If ANY row shows breathing < 45f → STOP and fix before continuing. This is not optional.
+
+### Step 5: Open Remotion Studio for User Preview (BLOCKING — never skip)
+
+**NEVER render directly. ALWAYS open Remotion Studio first and let the user preview.**
+
+```bash
+# Start studio on an available port
+npx remotion studio --port <available-port>
+# Then open in browser for the user
+open http://localhost:<port>
+```
+
+Tell the user the URL and WAIT for their feedback. Only proceed to render after the user confirms the video looks good. The user may request changes — iterate until approved.
+
+**Why this step exists:** Rendering takes time. If the video has visual bugs (cropped images, animations cut off, bad pacing), the user discovers them AFTER waiting for a render. Studio preview catches issues in seconds.
+
+### Step 6: Render (only after user approval)
 
 ```bash
 npm run render
