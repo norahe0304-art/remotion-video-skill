@@ -50,6 +50,7 @@ Read individual rule files for detailed explanations and code examples:
 ### Strategy & Quality
 - [rules/taste.md](rules/taste.md) - AI slop blacklist, design principles, UX laws, self-review checklist, pacing
 - [rules/narrative.md](rules/narrative.md) - 5-act structure, headline/UI rhythm, story arc, logo constellation
+- [rules/narrative-templates.md](rules/narrative-templates.md) - Industry-specific narrative templates (AI SaaS, FinTech, DevTool, E-Commerce, Healthcare, Cybersecurity, Collaboration)
 - [rules/workflow.md](rules/workflow.md) - Brand scraping, icon system, asset strategy, video embedding, file organization
 
 ## Reference Files (Code Patterns)
@@ -58,7 +59,7 @@ Read individual rule files for detailed explanations and code examples:
 - [references/audio.md](references/audio.md) - Audio sync, beat detection, voiceover ducking
 - [references/components.md](references/components.md) - GradientMesh, GlassPanel, FilmGrain, ProductFrame, BrandIcon
 - [references/lottie.md](references/lottie.md) - @remotion/lottie integration, recommended sources
-- [references/multi-resolution.md](references/multi-resolution.md) - Multi-format rendering (16:9, 9:16, 1:1), safe zones, font scaling
+- [references/visual-effects.md](references/visual-effects.md) - Tiered visual effects library reference (lottie, motion-blur, confetti, flubber, three.js)
 
 ## Workflow (MUST follow in order)
 
@@ -221,26 +222,42 @@ Tell the user the URL and WAIT for their feedback. Only proceed to render after 
 
 **Why this step exists:** Rendering takes time. If the video has visual bugs (cropped images, animations cut off, bad pacing), the user discovers them AFTER waiting for a render. Studio preview catches issues in seconds.
 
-### Step 6: Run Automated Checks (BLOCKING — render will not proceed without this)
-
-Before rendering, run the timing audit script. If it fails, FIX the issues before proceeding.
+### Step 5.5: Beat-Sync BGM (AUTOMATIC — run after BGM is downloaded)
 
 ```bash
-# Run timing audit — exits 1 if any animation overflows its scene
-npx tsx scripts/timing-audit.ts
+# Analyze BGM and generate beat map
+cp /path/to/skills/remotion-video/scripts/beat-sync.ts scripts/
+npx tsx scripts/beat-sync.ts public/brand/bgm.mp3
+```
+
+Outputs `public/brand/beat-map.json` with BPM, beat timestamps, and suggested scene cuts aligned to beats. Use `suggestedCuts` to fine-tune TransitionSeries `durationInFrames` values.
+
+### Step 6: Run Visual Audit (BLOCKING — render will not proceed without this)
+
+Before rendering, run the full visual audit. If it fails, FIX the issues before proceeding.
+
+```bash
+# Copy both scripts into each new project
+cp /path/to/skills/remotion-video/scripts/visual-audit.ts scripts/
+cp /path/to/skills/remotion-video/scripts/beat-sync.ts scripts/
+
+# Run visual audit — exits 1 if any FAIL-level issue found
+npx tsx scripts/visual-audit.ts
 
 # If audit passes, THEN render
 npx remotion render --codec h264 --crf 16 --image-format png
 ```
 
-**The audit script checks:**
-- Every SplitText, Typewriter, stagger, CountUp, FadeIn completes with 45+ frames breathing room
-- If ANY fails → fix the scene → re-run audit → only then render
+**The audit script checks (7 categories):**
+1. **TIMING** — animations complete with 45+ frames breathing room
+2. **FONT-SIZE** — no text smaller than 28px
+3. **FONT-WEIGHT** — no weight above 600 (semi-bold)
+4. **SAFE-ZONE** — padding ≥ 60px from edges for content
+5. **OBJECTFIT** — no `objectFit: "cover"` on screenshots
+6. **CONTRAST** — basic WCAG AA contrast checks
+7. **IMG-SAFETY** — all `<Img>` have objectFit or maxHeight
 
-**Copy the script into each new project:**
-```bash
-cp /path/to/skills/remotion-video/scripts/timing-audit.ts scripts/
-```
+If ANY FAIL → fix the scene → re-run audit → only then render.
 
 ## Premium vs Template
 

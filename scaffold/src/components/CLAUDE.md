@@ -9,6 +9,7 @@
 - `Background.tsx`: 背景渲染组件
 - `UI.tsx`: UI 原语 (GlassPanel, BrandIcon, GradientText, GradientBar), 无动画的静态视觉元素
 - `MockupTemplates.tsx`: 产品 UI 模拟模板 (DataTable, KanbanBoard, TerminalWindow, AnalyticsDashboard, BrowserFrame), 场景级即插即用 mockup
+- `VisualEffects.tsx`: 高级视觉效果 (ConfettiBurst, MorphTransition, PathDraw, ShimmerSweep, PulseGlow, ParticleField, StaggerReveal), 补充动效词汇量
 
 ## 依赖关系
 
