@@ -221,24 +221,26 @@ Tell the user the URL and WAIT for their feedback. Only proceed to render after 
 
 **Why this step exists:** Rendering takes time. If the video has visual bugs (cropped images, animations cut off, bad pacing), the user discovers them AFTER waiting for a render. Studio preview catches issues in seconds.
 
-### Step 6: Render (only after user approval)
+### Step 6: Run Automated Checks (BLOCKING — render will not proceed without this)
+
+Before rendering, run the timing audit script. If it fails, FIX the issues before proceeding.
 
 ```bash
-# Default 16:9 (YouTube / website)
-npx remotion render LaunchVideo --codec h264 --crf 16 --image-format png
+# Run timing audit — exits 1 if any animation overflows its scene
+npx tsx scripts/timing-audit.ts
 
-# Vertical 9:16 (TikTok / Reels / Shorts)
-npx remotion render LaunchVideo-Vertical --codec h264 --crf 16 --image-format png
-
-# Square 1:1 (Instagram / LinkedIn feed)
-npx remotion render LaunchVideo-Square --codec h264 --crf 16 --image-format png
+# If audit passes, THEN render
+npx remotion render --codec h264 --crf 16 --image-format png
 ```
 
-**Multi-resolution notes:**
-- The scaffold registers three Compositions in `Root.tsx` sharing the same `MainVideo` component.
-- Scenes should use **responsive layout** — percentage-based padding, flex layout, `useVideoConfig()` for dimensions — so they adapt across aspect ratios.
-- The **16:9 landscape** version is the primary design target. Vertical and square are secondary deliverables.
-- See [references/multi-resolution.md](references/multi-resolution.md) for safe zones, font scaling, and scene adaptation guidance.
+**The audit script checks:**
+- Every SplitText, Typewriter, stagger, CountUp, FadeIn completes with 45+ frames breathing room
+- If ANY fails → fix the scene → re-run audit → only then render
+
+**Copy the script into each new project:**
+```bash
+cp /path/to/skills/remotion-video/scripts/timing-audit.ts scripts/
+```
 
 ## Premium vs Template
 
