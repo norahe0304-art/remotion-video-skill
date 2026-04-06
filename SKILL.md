@@ -147,6 +147,8 @@ curl -o public/brand/demo-full.mp4 "<cdn-video-url>"
 ffmpeg -i public/brand/demo-full.mp4 -ss 0 -t 8 -c copy public/brand/demo.mp4
 ```
 
+**After downloading, WATCH the clip. Does it show the product's core experience?** If it's a random promo with talking heads or unrelated footage, search for a better one. The video must show the actual product UI in action — dashboards, editors, conversations, the thing users interact with.
+
 **If video truly impossible, download product screenshots:**
 
 ```bash
@@ -249,6 +251,31 @@ The structure is a framework. Adapt content to the user's story. **ACT 0 (Logo) 
 
 See [rules/workflow.md](rules/workflow.md) for Asset Strategy details.
 
+### ⛔ Step 3 BLOCKING GATE: Asset Relevance Check (MANDATORY — every asset must make sense)
+
+**Before moving to Step 3.5, review EVERY real asset you placed in a scene. Each one MUST pass ALL 4 checks:**
+
+| Check | Question | FAIL Example |
+|-------|----------|-------------|
+| **Context Match** | Does this asset show what this scene is ABOUT? | Login page video in a "speed & performance" scene |
+| **Narrative Flow** | Does the asset support the headline above/below it? | "Collaborate in real-time" headline over a solo-user screenshot |
+| **Visual Quality** | Is it high-res, no watermarks, no OS chrome/cursors? | 480p YouTube rip with mouse cursor visible |
+| **Brand Alignment** | Does it look like official brand marketing material? | Third-party review video used as if it's the brand's own |
+
+**How to check:**
+1. For each scene file, find every `staticFile("brand/...")` usage
+2. Open the actual asset file and WATCH/VIEW it fully
+3. Read the scene's headline text — does the asset illustrate THAT specific point?
+4. If the asset doesn't match the scene context → find a better asset or change the scene narrative to match
+
+**Common violations:**
+- Downloading one generic product demo and reusing it in 3 different scenes (lazy — each scene needs context-appropriate footage)
+- Using a "getting started" tutorial clip in the "enterprise scale" proof scene
+- Placing a dashboard screenshot in a scene about "beautiful design" when the dashboard isn't visually impressive
+- Using ANY asset you haven't actually watched/viewed yourself
+
+**If ANY asset fails relevance → replace it or re-download a better one BEFORE proceeding.**
+
 ### Step 3.5: Wire BGM into MainVideo (MANDATORY — already downloaded in Step 1D)
 
 BGM was downloaded in Step 1D. Now wire it into `MainVideo.tsx`. **This is NOT optional.**
@@ -344,6 +371,14 @@ grep -r "staticFile" src/scenes/ | grep -E "\.(mp4|png|svg|jpg)" | head -20
 
 # If grep returns ZERO results → you built pure code mockups with NO real assets. GO BACK TO STEP 3.
 ```
+
+#### 6A-2. Asset Relevance Check (MANUAL)
+
+For EVERY `staticFile("brand/...")` match from 6A, verify the asset makes sense for that scene:
+- Open the asset, watch/view it
+- Read the scene's headline — does the asset illustrate THAT point?
+- If mismatched → swap asset or adjust scene narrative
+- See Step 3 BLOCKING GATE above for the full 4-check relevance table
 
 #### 6B. BGM Check (MANUAL)
 
