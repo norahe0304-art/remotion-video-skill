@@ -95,13 +95,32 @@ cp -r /path/to/skills/remotion-video/scaffold/ <brand-name>-launch-video/
 # Replace project name in package.json
 sed -i '' 's/{{PROJECT_NAME}}/<brand-name>-launch-video/' <brand-name>-launch-video/package.json
 
+# Create required directories
+mkdir -p <brand-name>-launch-video/public/brand
+mkdir -p <brand-name>-launch-video/scripts
+
 # Install dependencies
 cd <brand-name>-launch-video && npm install
 ```
 
 **Scaffold provides:** Remotion 4.x + Tailwind v4 + TransitionSeries + light-leaks + noise + paths + Google Fonts + lucide-react + Zod. Plus pre-built: `MainVideo.tsx` (5-act TransitionSeries), `Animations.tsx` (FadeIn/ScaleIn/SplitText/Typewriter/CountUp), `Background.tsx` (GradientMesh/FilmGrain/Vignette/ColorGrade), `UI.tsx` (GlassPanel/BrandIcon/GradientText), `theme.ts` (token 占位).
 
-**Only proceed to Step 1 after `npm run dev` works.**
+**Pre-requisites (install if missing):**
+
+```bash
+# yt-dlp — video downloader (REQUIRED for brand video assets)
+brew install yt-dlp   # macOS
+# or: pip install yt-dlp   # any OS with Python
+
+# ffmpeg — video/audio processing (REQUIRED for trimming + BGM)
+brew install ffmpeg   # macOS
+# or: sudo apt install ffmpeg   # Linux
+
+# Verify both are available
+yt-dlp --version && ffmpeg -version
+```
+
+**Only proceed to Step 1 after `npm run dev` works AND `yt-dlp` + `ffmpeg` are installed.**
 
 ### Step 1: Scrape Brand + Download ALL Assets (BLOCKING — nothing starts before this)
 
@@ -109,7 +128,10 @@ cd <brand-name>-launch-video && npm install
 
 #### 1A. Scrape Design DNA
 
+Use whichever browser tool is available. Try in order:
+
 ```bash
+# Option 1: bb-browser (if installed)
 bb-browser open https://brand-site.com
 bb-browser snapshot -i
 bb-browser eval "getComputedStyle(document.documentElement).cssText"
@@ -117,7 +139,18 @@ bb-browser eval "document.querySelector('h1')?.textContent"
 bb-browser eval "document.querySelector('link[rel*=icon]')?.href"
 bb-browser screenshot public/brand/homepage.png
 bb-browser close
+
+# Option 2: MCP chrome-devtools (if available)
+# Use navigate_page, evaluate_script, take_screenshot MCP tools
+
+# Option 3: curl + manual inspection (always works)
+curl -s https://brand-site.com -o /tmp/brand-page.html
+# Extract CSS: grep for font-family, --color-, background in the HTML
+# Extract hero: grep for <h1, og:title, og:image in the HTML
+# Screenshot: open the URL in your browser, take screenshot manually
 ```
+
+**Any method works — the OUTPUT matters, not the tool.** You need: hex colors, font names, logo URL, hero copy, product type.
 
 #### 1B. Download Logo SVG (MANDATORY — NEVER hand-write)
 
@@ -155,20 +188,50 @@ ffmpeg -i public/brand/demo-full.mp4 -ss 0 -t 8 -c copy public/brand/demo.mp4
 # Download hero image, product screenshots, og:image
 curl -o public/brand/hero.png "<hero-image-url>"
 curl -o public/brand/product-ui.png "<product-screenshot-url>"
-bb-browser screenshot public/brand/homepage-full.png --full-page
+
+# Full-page screenshot (use whichever tool is available)
+bb-browser screenshot public/brand/homepage-full.png --full-page  # bb-browser
+# or: use MCP chrome-devtools take_screenshot
+# or: manually screenshot in browser and save to public/brand/
 ```
 
 #### 1D. Download BGM Track (MANDATORY — NEVER ask user for music)
 
+**Try sources in order until one works. All are royalty-free, no attribution required:**
+
 ```bash
-# Search Pixabay Music for brand-matching track (30-60s, royalty-free)
-bb-browser open "https://pixabay.com/music/search/?q=corporate+ambient&duration=30-60"
-# Find a track, get download URL, then:
-curl -L -o public/brand/bgm-raw.mp3 "<pixabay-download-url>"
+# Source 1: Pixabay Music API (no login needed for direct MP3 links)
+# Search: https://pixabay.com/music/search/?q=corporate+ambient&duration=30-60
+# Find a track page, look for the download button's direct URL
+curl -L -o public/brand/bgm-raw.mp3 "<pixabay-direct-mp3-url>"
+
+# Source 2: Mixkit (direct download, no login)
+# Browse: https://mixkit.co/free-stock-music/
+# Each track has a direct download link — right-click "Download" → copy URL
+curl -L -o public/brand/bgm-raw.mp3 "https://assets.mixkit.co/music/download/mixkit-<track-name>.mp3"
+
+# Source 3: Uppbeat (direct download for free tier)
+# Browse: https://uppbeat.io/browse/music
+# Free tracks have direct download URLs after browsing
+
+# Source 4: YouTube royalty-free music (always works as last resort)
+yt-dlp -x --audio-format mp3 -o public/brand/bgm-raw.mp3 \
+  "ytsearch1:royalty free corporate ambient background music 30 seconds"
+
+# After downloading from ANY source, trim + fade:
 ffmpeg -i public/brand/bgm-raw.mp3 -t 45 -af "afade=in:0:d=2,afade=out:st=42:d=3" public/brand/bgm.mp3
 ```
 
-**Tone matching:** Tech/SaaS→"corporate ambient", Creative→"inspiring cinematic", Startup→"upbeat technology", Enterprise→"ambient corporate", Playful→"happy upbeat". See [rules/workflow.md](rules/workflow.md) for full BGM sourcing protocol.
+**Tone matching guide:**
+| Brand Tone | Search Keywords |
+|------------|----------------|
+| Tech/SaaS | "corporate ambient", "tech minimal", "digital innovation" |
+| Creative/Design | "inspiring cinematic", "modern elegant" |
+| Startup/Hype | "upbeat technology", "energetic corporate" |
+| Enterprise/Serious | "ambient corporate", "calm business" |
+| Playful/Consumer | "happy upbeat", "positive modern" |
+
+**If one source fails (login wall, CAPTCHA, region block), move to the next. `yt-dlp` YouTube search (Source 4) ALWAYS works as ultimate fallback.** See [rules/workflow.md](rules/workflow.md) for full BGM sourcing protocol.
 
 #### ⛔ BLOCKING GATE — Verify Before Proceeding
 
@@ -203,6 +266,8 @@ After scraping, STOP and ask the user:
 
 **Why this step exists:** Every user's video must be DIFFERENT. The 5-act structure is a FRAMEWORK, not a script. ACT 1 (Hook) is always a product UI — but WHICH UI, showing WHAT interaction, depends on the user's story. ACT 3 (Showcase) could be 2 features or 4. ACT 4 could be data or testimonials or cut entirely for a longer showcase.
 
+**Match industry template:** After identifying the brand's industry, load [rules/narrative-templates.md](rules/narrative-templates.md) for pre-built narrative patterns (AI SaaS, FinTech, DevTool, E-Commerce, Healthcare, Cybersecurity, Collaboration). Use the matching template as a STARTING POINT, then adapt to the user's answers.
+
 **NEVER auto-generate storyline.** "It reasons. It codes. It creates." is lazy template output. Ask, listen, then build.
 
 ### Step 2: Build Theme from Scraped Data
@@ -222,7 +287,7 @@ The structure is a framework. Adapt content to the user's story. **ACT 0 (Logo) 
 | ACT 4 Proof | Data visualization / social proof (optional) | What metrics? | Code-built data viz OK |
 | ACT 5 Close | CTA lockup + brand logo again | What tagline? | `<Img src={staticFile("brand/logo.svg")} />` again |
 
-**⚠️ CRITICAL: At least 2 of the 6 acts MUST use a real downloaded asset (video or image) via `staticFile()`.** Pure code-built UIs are SUPPLEMENTS, not replacements. If you wrote a scene with zero `<Img>` or `<OffthreadVideo>` using `staticFile("brand/...")`, you are doing it wrong.
+**⚠️ CRITICAL: ACT 0/5 logo usage does NOT count. Among ACT 1-4, at least 2 acts MUST use a real downloaded video or screenshot via `staticFile()`.** This means `<OffthreadVideo src={staticFile("brand/demo.mp4")} />` or `<Img src={staticFile("brand/hero.png")} />` showing actual product visuals — not just the logo SVG. Pure code-built UIs are SUPPLEMENTS, not replacements. If ACT 1-4 contain zero `staticFile("brand/...")` references for video/images, you are doing it wrong.
 
 **How to use assets in scenes:**
 
@@ -364,12 +429,15 @@ Before rendering, run THREE mandatory checks:
 
 ```bash
 # Check: do scenes actually USE real assets?
-grep -r "staticFile" src/scenes/ | grep -E "\.(mp4|png|svg|jpg)" | head -20
-# MUST find at least:
-# ✅ staticFile("brand/logo.svg") in LogoScene + CloseScene
-# ✅ staticFile("brand/demo.mp4") OR staticFile("brand/hero.png") in at least 1 other scene
+grep -r "staticFile" src/scenes/ | grep -E "\.(mp4|png|jpg)" | head -20
+# ⚠️ logo.svg references do NOT count for this check.
+# MUST find at least 2 matches in ACT 1-4 scenes (Hook, Reveal, Showcase, Proof)
+# using demo.mp4, hero.png, product-ui.png, or other downloaded visuals.
+#
+# ✅ PASS: HookScene.tsx:staticFile("brand/demo.mp4") + ShowcaseScene.tsx:staticFile("brand/product-ui.png")
+# ❌ FAIL: only LogoScene.tsx:staticFile("brand/logo.svg") + CloseScene.tsx:staticFile("brand/logo.svg")
 
-# If grep returns ZERO results → you built pure code mockups with NO real assets. GO BACK TO STEP 3.
+# If fewer than 2 video/image matches in ACT 1-4 → GO BACK TO STEP 3 and add real assets.
 ```
 
 #### 6A-2. Asset Relevance Check (MANUAL)

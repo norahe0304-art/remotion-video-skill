@@ -8,30 +8,33 @@ ALWAYS fetch the brand's real site before writing any code. This is NON-NEGOTIAB
 
 ### How to Scrape
 
-Use `bb-browser` (or curl/fetch) to open the brand's landing page and extract:
+Use whichever browser tool is available. The OUTPUT matters, not the tool.
+
+**Option A: bb-browser (if installed)**
 
 ```bash
-# 1. Open the brand site
 bb-browser open https://brand-site.com
 bb-browser snapshot -i
-
-# 2. Extract CSS variables and computed styles
 bb-browser eval "JSON.stringify(getComputedStyle(document.documentElement))"
-
-# 3. Extract all colors, fonts, spacing from CSS custom properties
 bb-browser eval "[...document.styleSheets].flatMap(s => [...s.cssRules]).filter(r => r.style).map(r => r.cssText).join('\n')"
-
-# 4. Download the favicon/logo SVG
 bb-browser eval "document.querySelector('link[rel*=icon]')?.href"
-# Then: curl -o public/brand/logo.svg <URL>
-
-# 5. Extract hero section copy
 bb-browser eval "document.querySelector('h1')?.textContent"
 bb-browser eval "document.querySelector('[class*=hero] p, [class*=subtitle]')?.textContent"
-
-# 6. Screenshot for visual reference (secondary, not primary)
 bb-browser screenshot public/brand/homepage.png
 bb-browser close
+```
+
+**Option B: MCP chrome-devtools (if available)**
+
+Use `navigate_page` to open the site, `evaluate_script` for DOM queries, `take_screenshot` for reference images.
+
+**Option C: curl + manual (always works)**
+
+```bash
+curl -s https://brand-site.com -o /tmp/brand-page.html
+# Search the HTML for: font-family, --color-, background-color, <h1>, og:image, favicon
+# Extract logo URL from <link rel="icon"> or <link rel="apple-touch-icon">
+curl -o public/brand/logo.svg "<logo-url>"
 ```
 
 ### What to Extract (Checklist)
@@ -123,25 +126,32 @@ Every video MUST have background music. Music makes the difference between amate
 
 ### How to Source BGM (AUTO — never ask user)
 
-BGM sourcing is AUTOMATIC. Do NOT ask the user to provide music. Search and download a free royalty-free track yourself:
+BGM sourcing is AUTOMATIC. Do NOT ask the user to provide music. Try sources in order until one works:
 
 ```bash
-# Step 1: Search Pixabay for a suitable track
-# Use keywords based on brand tone: "corporate ambient", "tech cinematic", "minimal electronic"
-bb-browser open "https://pixabay.com/music/search/?q=corporate+ambient&duration=30-60"
-bb-browser screenshot public/brand/pixabay-search.png
+# Source 1: Pixabay Music (browse, find direct MP3 link)
+# https://pixabay.com/music/search/?q=corporate+ambient&duration=30-60
+curl -L -o public/brand/bgm-raw.mp3 "<pixabay-direct-mp3-url>"
 
-# Step 2: Find a track, get the download URL
-# Look for tracks 30-60s, matching the brand tone
-# Pixabay tracks are royalty-free, no attribution required
+# Source 2: Mixkit (direct download, no login needed)
+# https://mixkit.co/free-stock-music/
+curl -L -o public/brand/bgm-raw.mp3 "https://assets.mixkit.co/music/download/mixkit-<track>.mp3"
 
-# Step 3: Download and trim
-curl -L -o public/brand/bgm-raw.mp3 "<pixabay-download-url>"
+# Source 3: Uppbeat free tier
+# https://uppbeat.io/browse/music
+
+# Source 4: YouTube royalty-free (ALWAYS works as last resort)
+yt-dlp -x --audio-format mp3 -o public/brand/bgm-raw.mp3 \
+  "ytsearch1:royalty free corporate ambient background music 30 seconds"
+
+# After download from ANY source — trim + fade:
 ffmpeg -i public/brand/bgm-raw.mp3 -t 45 -af "afade=in:0:d=2,afade=out:st=42:d=3" public/brand/bgm.mp3
 
-# Step 4: Detect BPM for beat sync
+# Detect BPM for beat sync:
 ffmpeg -i public/brand/bgm.mp3 -af "atempo=1" -f null - 2>&1 | grep -i bpm
 ```
+
+**If one source fails (login wall, CAPTCHA, region block), move to the next.** `yt-dlp` YouTube search (Source 4) is the ultimate fallback that always works.
 
 **Tone matching guide:**
 | Brand Tone | Search Keywords |
