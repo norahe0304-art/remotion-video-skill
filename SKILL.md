@@ -103,32 +103,88 @@ cd <brand-name>-launch-video && npm install
 
 **Only proceed to Step 1 after `npm run dev` works.**
 
-### Step 1: Scrape Brand Data (BLOCKING — nothing starts before this)
+### Step 1: Scrape Brand + Download ALL Assets (BLOCKING — nothing starts before this)
 
-Use `bb-browser` to open the brand's site and extract everything. See [rules/workflow.md](rules/workflow.md) for the full scraping protocol.
+**This step has THREE mandatory outputs. Do NOT proceed until ALL THREE exist in `public/brand/`.**
+
+#### 1A. Scrape Design DNA
 
 ```bash
-# Open brand site, extract design DNA
 bb-browser open https://brand-site.com
 bb-browser snapshot -i
-
-# Extract CSS variables, hero copy, logo URL
 bb-browser eval "getComputedStyle(document.documentElement).cssText"
 bb-browser eval "document.querySelector('h1')?.textContent"
 bb-browser eval "document.querySelector('link[rel*=icon]')?.href"
 bb-browser screenshot public/brand/homepage.png
 bb-browser close
-
-# Download logo SVG (NEVER hand-write SVG paths)
-curl -o public/brand/logo.svg <favicon-url>
-
-# Download video assets if available
-ffmpeg -i <video-url> -t 8 -c copy public/brand/clip.mp4
 ```
 
-**Output:** `public/brand/` populated with logo.svg, screenshots, video clips.
-**Extract:** exact hex colors, font families, hero copy, product features, visual style.
-**Only proceed to Step 2 after scraping is complete.**
+#### 1B. Download Logo SVG (MANDATORY — NEVER hand-write)
+
+```bash
+curl -o public/brand/logo.svg <favicon-or-header-svg-url>
+# Verify it renders: open public/brand/logo.svg in browser
+```
+
+#### 1C. Download Video OR Product Screenshots (MANDATORY — at least ONE)
+
+**Try video first (ALWAYS preferred over static images):**
+
+```bash
+# Option A: Found YouTube/Vimeo embed on brand site
+yt-dlp -f "bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]" \
+  -o public/brand/demo-full.mp4 "<video-url>"
+ffmpeg -i public/brand/demo-full.mp4 -ss 0 -t 8 -c copy public/brand/demo.mp4
+
+# Option B: No embed found — search YouTube
+yt-dlp "ytsearch1:<BrandName> official product demo 2024" \
+  -f "bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]" \
+  -o public/brand/demo-full.mp4
+ffmpeg -i public/brand/demo-full.mp4 -ss 0 -t 8 -c copy public/brand/demo.mp4
+
+# Option C: Direct CDN video found on page
+curl -o public/brand/demo-full.mp4 "<cdn-video-url>"
+ffmpeg -i public/brand/demo-full.mp4 -ss 0 -t 8 -c copy public/brand/demo.mp4
+```
+
+**If video truly impossible, download product screenshots:**
+
+```bash
+# Download hero image, product screenshots, og:image
+curl -o public/brand/hero.png "<hero-image-url>"
+curl -o public/brand/product-ui.png "<product-screenshot-url>"
+bb-browser screenshot public/brand/homepage-full.png --full-page
+```
+
+#### 1D. Download BGM Track (MANDATORY — NEVER ask user for music)
+
+```bash
+# Search Pixabay Music for brand-matching track (30-60s, royalty-free)
+bb-browser open "https://pixabay.com/music/search/?q=corporate+ambient&duration=30-60"
+# Find a track, get download URL, then:
+curl -L -o public/brand/bgm-raw.mp3 "<pixabay-download-url>"
+ffmpeg -i public/brand/bgm-raw.mp3 -t 45 -af "afade=in:0:d=2,afade=out:st=42:d=3" public/brand/bgm.mp3
+```
+
+**Tone matching:** Tech/SaaS→"corporate ambient", Creative→"inspiring cinematic", Startup→"upbeat technology", Enterprise→"ambient corporate", Playful→"happy upbeat". See [rules/workflow.md](rules/workflow.md) for full BGM sourcing protocol.
+
+#### ⛔ BLOCKING GATE — Verify Before Proceeding
+
+```bash
+ls -la public/brand/
+# MUST contain ALL of these:
+# ✅ logo.svg (or logo.png)          — brand logo, downloaded verbatim
+# ✅ demo.mp4 OR hero.png            — real product visual (video preferred)
+# ✅ bgm.mp3                         — background music track
+# ✅ homepage.png                     — reference screenshot
+```
+
+**🚫 DO NOT PROCEED TO STEP 2 IF ANY OF THESE ARE MISSING:**
+- No `logo.svg`? → Go back and download it. NEVER hand-write SVG paths.
+- No `demo.mp4` AND no `hero.png`? → Go back and download product visuals. NEVER build a video with zero real assets.
+- No `bgm.mp3`? → Go back and download from Pixabay. NEVER ship a silent video.
+
+**Extract from scrape:** exact hex colors, font families, hero copy, product features, visual style.
 
 ### Step 1.5: Ask User for Storyline (BLOCKING — never assume narrative)
 
@@ -151,20 +207,37 @@ After scraping, STOP and ask the user:
 
 Update `theme.ts` using ONLY scraped values. Replace all `#REPLACE_ME` tokens. Update `lib/fonts.ts` to load the brand's actual fonts. Update `index.css` @theme vars to match.
 
-### Step 3: Build 6-Act Scenes (from user's storyline)
+### Step 3: Build 6-Act Scenes (from user's storyline) — MUST USE REAL ASSETS
 
 The structure is a framework. Adapt content to the user's story. **ACT 0 (Logo) is MANDATORY.**
 
-| Act | Structure (fixed) | Content (from user) |
-|-----|-------------------|---------------------|
-| **ACT 0 Logo** | **MANDATORY. Brand logo/wordmark spring entrance + shimmer sweep. 4s.** | Real SVG logo downloaded from site |
-| ACT 1 Hook | Product UI mockup, spring entrance | Which product screen? What interaction to animate? |
-| ACT 2 Reveal | Capability icons + tagline | Which capabilities? What intro text? |
-| ACT 3 Showcase | Headline → UI alternating rhythm | Which features? What headlines? What UIs? |
-| ACT 4 Proof | Data visualization / social proof (optional) | What metrics? Or skip for longer showcase? |
-| ACT 5 Close | CTA lockup + brand logo again | What tagline? What CTA? What URL? |
+| Act | Structure (fixed) | Content (from user) | **Required Real Asset** |
+|-----|-------------------|---------------------|------------------------|
+| **ACT 0 Logo** | **MANDATORY. Brand logo spring entrance + shimmer sweep. 4s.** | Real SVG logo | `<Img src={staticFile("brand/logo.svg")} />` |
+| ACT 1 Hook | Product UI mockup, spring entrance | Which product screen? | **`<OffthreadVideo src={staticFile("brand/demo.mp4")} />` or `<Img src={staticFile("brand/hero.png")} />`** |
+| ACT 2 Reveal | Capability icons + tagline | Which capabilities? | Icons from lucide-react |
+| ACT 3 Showcase | Headline → UI alternating rhythm | Which features? | **At least 1 scene: real screenshot/video inside UI chrome** |
+| ACT 4 Proof | Data visualization / social proof (optional) | What metrics? | Code-built data viz OK |
+| ACT 5 Close | CTA lockup + brand logo again | What tagline? | `<Img src={staticFile("brand/logo.svg")} />` again |
 
-Create files in `src/scenes/`: `LogoScene.tsx`, `HookScene.tsx`, `RevealScene.tsx`, `ShowcaseScene.tsx`, `ProofScene.tsx`, `CloseScene.tsx`. Import into `MainVideo.tsx`.
+**⚠️ CRITICAL: At least 2 of the 6 acts MUST use a real downloaded asset (video or image) via `staticFile()`.** Pure code-built UIs are SUPPLEMENTS, not replacements. If you wrote a scene with zero `<Img>` or `<OffthreadVideo>` using `staticFile("brand/...")`, you are doing it wrong.
+
+**How to use assets in scenes:**
+
+```tsx
+// Video inside browser chrome (product UI recordings)
+<div style={{ borderRadius: 16, overflow: "hidden", border: "1px solid rgba(255,255,255,0.1)" }}>
+  <OffthreadVideo src={staticFile("brand/demo.mp4")} style={{ width: 1200 }} />
+</div>
+
+// Full-screen video (cinematic/lifestyle footage)
+<AbsoluteFill>
+  <OffthreadVideo src={staticFile("brand/demo.mp4")} style={{ width: "100%", height: "100%" }} />
+</AbsoluteFill>
+
+// Product screenshot inside UI mockup
+<Img src={staticFile("brand/product-ui.png")} style={{ width: "100%", objectFit: "contain" }} />
+```
 
 **ACT 0 Logo Animation Requirements:**
 - Real brand SVG wordmark/logo — downloaded, NEVER hand-written
@@ -174,33 +247,46 @@ Create files in `src/scenes/`: `LogoScene.tsx`, `HookScene.tsx`, `RevealScene.ts
 - **Premium background required** — NEVER plain white/black. Add: GradientMesh (brand colors, low opacity 0.05-0.08), center glow pulse (radial-gradient breathing), subtle conic-gradient radial lines. The background sells luxury.
 - Logo appears ONLY in ACT 0 and ACT 5 — NOT in middle acts
 
-**Use REAL scraped assets.** Logo SVG from the site (NEVER hand-write). Product screenshots INSIDE UI chrome. Downloaded images at near-full width. See [rules/workflow.md](rules/workflow.md) Asset Strategy.
+See [rules/workflow.md](rules/workflow.md) for Asset Strategy details.
 
-### Step 3.5: Add BGM (AUTOMATIC — never ask user)
+### Step 3.5: Wire BGM into MainVideo (MANDATORY — already downloaded in Step 1D)
 
-Every video MUST have background music. **Auto-source it, don't ask the user.**
-
-1. Match brand tone from scraping (tech→ambient, startup→upbeat, etc.)
-2. Search Pixabay Music for a free royalty-free track (30-60s)
-3. Download + trim to ~45s with ffmpeg fade in/out
-4. Detect BPM for beat sync
-5. Add `<Audio>` component in MainVideo with volume envelope (fade in 2s, sustain 0.2-0.3, fade out 3s)
-6. Align scene transitions to beat timestamps when possible
-
-See [rules/workflow.md](rules/workflow.md) BGM section for full sourcing protocol.
+BGM was downloaded in Step 1D. Now wire it into `MainVideo.tsx`. **This is NOT optional.**
 
 ```tsx
-// BGM with fade envelope
-const BGM: React.FC = () => {
+// Add to MainVideo.tsx — FIRST thing inside <AbsoluteFill>
+import { Audio, staticFile, interpolate, useCurrentFrame, useVideoConfig } from "remotion";
+
+export const MainVideo: React.FC = () => {
   const frame = useCurrentFrame();
   const { fps, durationInFrames } = useVideoConfig();
-  const volume = Math.min(
+
+  // BGM volume envelope: fade in 2s, sustain at 0.3, fade out 3s
+  const bgmVolume = Math.min(
     interpolate(frame, [0, 2 * fps], [0, 0.3], { extrapolateLeft: "clamp", extrapolateRight: "clamp" }),
     interpolate(frame, [durationInFrames - 3 * fps, durationInFrames], [0.3, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" })
   );
-  return <Audio src={staticFile("brand/bgm.mp3")} volume={volume} />;
+
+  return (
+    <AbsoluteFill>
+      <Audio src={staticFile("brand/bgm.mp3")} volume={bgmVolume} />
+      {/* ... TransitionSeries with scenes ... */}
+    </AbsoluteFill>
+  );
 };
 ```
+
+**⛔ BLOCKING: After writing MainVideo.tsx, grep for `<Audio` in the file. If not found, you forgot BGM. Add it NOW.**
+
+### Step 3.6: Beat-Sync Scene Transitions (AUTOMATIC)
+
+```bash
+# Analyze BGM and generate beat map
+cp /path/to/skills/remotion-video/scripts/beat-sync.ts scripts/
+npx tsx scripts/beat-sync.ts public/brand/bgm.mp3
+```
+
+Use `suggestedCuts` from `public/brand/beat-map.json` to fine-tune TransitionSeries `durationInFrames` so scene cuts land on beats.
 
 ### Step 4: Polish
 
@@ -243,33 +329,45 @@ Tell the user the URL and WAIT for their feedback. Only proceed to render after 
 
 **Why this step exists:** Rendering takes time. If the video has visual bugs (cropped images, animations cut off, bad pacing), the user discovers them AFTER waiting for a render. Studio preview catches issues in seconds.
 
-### Step 5.5: Beat-Sync BGM (AUTOMATIC — run after BGM is downloaded)
+### Step 6: Run Asset + BGM + Visual Audit (BLOCKING — render will not proceed without this)
+
+Before rendering, run THREE mandatory checks:
+
+#### 6A. Asset Usage Check (MANUAL)
 
 ```bash
-# Analyze BGM and generate beat map
-cp /path/to/skills/remotion-video/scripts/beat-sync.ts scripts/
-npx tsx scripts/beat-sync.ts public/brand/bgm.mp3
+# Check: do scenes actually USE real assets?
+grep -r "staticFile" src/scenes/ | grep -E "\.(mp4|png|svg|jpg)" | head -20
+# MUST find at least:
+# ✅ staticFile("brand/logo.svg") in LogoScene + CloseScene
+# ✅ staticFile("brand/demo.mp4") OR staticFile("brand/hero.png") in at least 1 other scene
+
+# If grep returns ZERO results → you built pure code mockups with NO real assets. GO BACK TO STEP 3.
 ```
 
-Outputs `public/brand/beat-map.json` with BPM, beat timestamps, and suggested scene cuts aligned to beats. Use `suggestedCuts` to fine-tune TransitionSeries `durationInFrames` values.
-
-### Step 6: Run Visual Audit (BLOCKING — render will not proceed without this)
-
-Before rendering, run the full visual audit. If it fails, FIX the issues before proceeding.
+#### 6B. BGM Check (MANUAL)
 
 ```bash
-# Copy both scripts into each new project
+# Check: does MainVideo have <Audio> with bgm.mp3?
+grep -n "Audio" src/MainVideo.tsx
+grep -n "bgm" src/MainVideo.tsx
+# MUST find <Audio src={staticFile("brand/bgm.mp3")} with volume envelope
+# If not found → ADD IT NOW. Copy the code from Step 3.5 above.
+
+# Also verify no localhost URLs survived:
+grep -r "localhost:8888" src/
+# MUST return ZERO results. Fix any matches with staticFile().
+```
+
+#### 6C. Visual Audit Script
+
+```bash
 cp /path/to/skills/remotion-video/scripts/visual-audit.ts scripts/
 cp /path/to/skills/remotion-video/scripts/beat-sync.ts scripts/
-
-# Run visual audit — exits 1 if any FAIL-level issue found
 npx tsx scripts/visual-audit.ts
-
-# If audit passes, THEN render
-npx remotion render --codec h264 --crf 16 --image-format png
 ```
 
-**The audit script checks (7 categories):**
+**The audit checks (9 categories):**
 1. **TIMING** — animations complete with 45+ frames breathing room
 2. **FONT-SIZE** — no text smaller than 28px
 3. **FONT-WEIGHT** — no weight above 600 (semi-bold)
@@ -277,8 +375,14 @@ npx remotion render --codec h264 --crf 16 --image-format png
 5. **OBJECTFIT** — no `objectFit: "cover"` on screenshots
 6. **CONTRAST** — basic WCAG AA contrast checks
 7. **IMG-SAFETY** — all `<Img>` have objectFit or maxHeight
+8. **REAL-ASSETS** — at least 2 scenes reference `staticFile("brand/...")` for real media
+9. **BGM-WIRED** — MainVideo.tsx contains `<Audio src={staticFile("brand/bgm.mp3")}>`
 
-If ANY FAIL → fix the scene → re-run audit → only then render.
+If ANY FAIL → fix → re-run → only then render:
+
+```bash
+npx remotion render --codec h264 --crf 16 --image-format png
+```
 
 ## Premium vs Template
 

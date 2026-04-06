@@ -184,7 +184,7 @@ const BGM: React.FC = () => {
     interpolate(frame, [0, 2 * fps], [0, 0.3], { extrapolateLeft: "clamp", extrapolateRight: "clamp" }),
     interpolate(frame, [durationInFrames - 3 * fps, durationInFrames], [0.3, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" })
   );
-  return <Audio src="http://localhost:8888/brand/bgm.mp3" volume={volume} />;
+  return <Audio src={staticFile("brand/bgm.mp3")} volume={volume} />;
 };
 ```
 
