@@ -61,6 +61,27 @@ Read individual rule files for detailed explanations and code examples:
 - [references/lottie.md](references/lottie.md) - @remotion/lottie integration, recommended sources
 - [references/visual-effects.md](references/visual-effects.md) - Tiered visual effects library reference (lottie, motion-blur, confetti, flubber, three.js)
 
+## Remotion API Reference (Bundled)
+
+This skill bundles the full `remotion-best-practices` reference for Remotion API patterns. Load these when you need Remotion-specific API knowledge:
+
+- [remotion-best-practices/rules/videos.md](remotion-best-practices/rules/videos.md) - Video embedding, trimming, volume, speed, looping
+- [remotion-best-practices/rules/audio.md](remotion-best-practices/rules/audio.md) - Audio importing, trimming, volume, speed, pitch
+- [remotion-best-practices/rules/timing.md](remotion-best-practices/rules/timing.md) - Interpolation curves, linear, easing, spring
+- [remotion-best-practices/rules/transitions.md](remotion-best-practices/rules/transitions.md) - Scene transition patterns
+- [remotion-best-practices/rules/compositions.md](remotion-best-practices/rules/compositions.md) - Compositions, stills, folders, default props
+- [remotion-best-practices/rules/sequencing.md](remotion-best-practices/rules/sequencing.md) - Sequence delay, trim, duration limiting
+- [remotion-best-practices/rules/fonts.md](remotion-best-practices/rules/fonts.md) - Google Fonts and local font loading
+- [remotion-best-practices/rules/images.md](remotion-best-practices/rules/images.md) - Img component usage
+- [remotion-best-practices/rules/charts.md](remotion-best-practices/rules/charts.md) - Bar, pie, line, stock chart patterns
+- [remotion-best-practices/rules/light-leaks.md](remotion-best-practices/rules/light-leaks.md) - @remotion/light-leaks overlay effects
+- [remotion-best-practices/rules/lottie.md](remotion-best-practices/rules/lottie.md) - @remotion/lottie integration
+- [remotion-best-practices/rules/text-animations.md](remotion-best-practices/rules/text-animations.md) - Typography animation patterns
+- [remotion-best-practices/rules/calculate-metadata.md](remotion-best-practices/rules/calculate-metadata.md) - Dynamic composition metadata
+- [remotion-best-practices/rules/voiceover.md](remotion-best-practices/rules/voiceover.md) - AI voiceover with ElevenLabs TTS
+- [remotion-best-practices/rules/parameters.md](remotion-best-practices/rules/parameters.md) - Zod schema parametrization
+- [remotion-best-practices/rules/ffmpeg.md](remotion-best-practices/rules/ffmpeg.md) - FFmpeg operations for video trimming
+
 ## Workflow (MUST follow in order)
 
 ### Step 0: Scaffold Project (30 seconds, not 30 minutes)

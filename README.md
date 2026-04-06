@@ -1,103 +1,74 @@
-# Remotion Video Skill for Claude Code
+# Remotion Video Skill
 
-A Claude Code skill that generates premium 40-second product launch videos using Remotion. Give it a brand URL, and it builds animated product UI mockups — full dashboards, code editors, conversation UIs, data charts — not floating text on backgrounds.
-
-## What It Does
-
-1. **Scrapes** the brand's real website for colors, fonts, logos, assets
-2. **Asks** the user for their storyline (never auto-generates cookie-cutter narratives)
-3. **Builds** a 6-act video with animated product UI mockups
-4. **Sources** royalty-free background music automatically
-5. **Validates** readability and watchability before rendering
-
-## 6-Act Structure
-
-| Act | Duration | Content |
-|-----|----------|---------|
-| Logo | 4s | Brand logo/wordmark spring animation (mandatory) |
-| Hook | 5s | Product UI mockup with interactive animation |
-| Reveal | 5s | Capability icons + intro headline |
-| Showcase | 14s | 2-4 feature vignettes (headline + UI alternating) |
-| Proof | 5s | Data dashboard / social proof (optional) |
-| Close | 7s | CTA lockup + brand logo |
-
-## Tech Stack
-
-Remotion 4.x + React 19 + TypeScript + Zod + lucide-react + @remotion/transitions + @remotion/google-fonts + @remotion/paths + @remotion/light-leaks + @remotion/media
+Generate premium 40-second product launch videos with Claude Code + Remotion. Give it a brand URL, get a video that looks like a $50k agency produced it.
 
 ## Installation
 
-### As a Claude Code Skill
+```bash
+npx skills add norahe0304-art/remotion-video-skill -g
+```
+
+Or project-level:
 
 ```bash
-# Copy to your Claude Code skills directory
-cp -r remotion-video-skill/ ~/.claude/skills/remotion-video/
+npx skills add norahe0304-art/remotion-video-skill
 ```
 
-Then add to your Claude Code settings:
-
-```json
-{
-  "skills": {
-    "remotion-video": {
-      "path": "~/.claude/skills/remotion-video"
-    }
-  }
-}
-```
-
-### Usage
+## Usage
 
 Just tell Claude Code:
-> "Make a launch video for [brand-url]"
 
-The skill will:
-1. Scaffold a Remotion project from the built-in template
-2. Scrape the brand's site for design DNA
-3. Ask you for the storyline
-4. Build all scenes with real assets
-5. Add background music
-6. Validate readability
-7. Render to MP4
+> "Make a launch video for linear.app"
 
-## Rules & References
+The skill will scrape the brand, ask for your storyline, build animated UI mockups, add BGM, and render to MP4.
 
-### Design System
-- `rules/typography.md` - Font weights (max 600), size hierarchy (min 28px)
-- `rules/color.md` - Brand polarity, neutral tinting, 60-30-10 rule
-- `rules/layout.md` - Grid system, 4px spacing, safe zones
+## What's Inside
 
-### Visual Content
-- `rules/ui-mockups.md` - Product UI construction, typing effects, cursor simulation
-- `rules/cards.md` - Staggered card grids, animated card bodies
-- `rules/data-viz.md` - SVG charts, animated metrics, tabular-nums
+**3,200+ lines of rules** across 13 files, **4,100+ lines of bundled Remotion API reference**, **1,900+ lines of scaffold code**, and **5 reference files** with copy-paste components.
 
-### Motion & Production
-- `rules/motion.md` - Springs, easeOutExpo, per-character stagger
-- `rules/transitions.md` - TransitionSeries, light leaks, parallax
-- `rules/cinematic.md` - Film grain, vignette, shimmer sweep, color grading
+### Design System (rules/)
+| File | What it covers |
+|------|---------------|
+| `layout.md` | Grid system, safe zones, nowrap rules, card padding minimums, SplitText flex-column fix |
+| `typography.md` | Font weights (max 600), size hierarchy (min 28px), text safety |
+| `color.md` | Brand polarity detection, neutral tinting, 60-30-10 rule |
+| `ui-mockups.md` | Product UI construction, density, title bars, syntax coloring |
+| `cards.md` | Staggered card grids, interior fill, animated card bodies |
+| `data-viz.md` | SVG charts, animated metrics, tabular-nums, status badges |
 
-### Strategy & Quality
-- `rules/taste.md` - AI slop blacklist, readability audit, pacing
-- `rules/narrative.md` - 6-act framework, headline/UI rhythm
-- `rules/workflow.md` - Brand scraping, asset strategy, BGM sourcing
+### Motion & Production (rules/)
+| File | What it covers |
+|------|---------------|
+| `motion.md` | Spring physics, easeOutExpo, per-character stagger, timing standards |
+| `transitions.md` | TransitionSeries, light leaks, fluid backgrounds, parallax |
+| `cinematic.md` | Film grain, vignette, shimmer sweep, color grading, render settings |
 
-### Code Patterns
-- `references/animations.md` - FadeIn, ScaleIn, SplitText, Typewriter, CountUp
-- `references/audio.md` - Beat sync, voiceover ducking, audio layers
-- `references/components.md` - GradientMesh, GlassPanel, FilmGrain
-- `references/lottie.md` - @remotion/lottie integration
+### Strategy & Quality (rules/)
+| File | What it covers |
+|------|---------------|
+| `taste.md` | 23-item AI slop blacklist, cognitive UX laws, self-review checklist |
+| `narrative.md` | 6-act structure, headline/UI rhythm, story arc |
+| `narrative-templates.md` | 7 industry templates (AI SaaS, FinTech, DevTool, E-Commerce, etc.) |
+| `workflow.md` | Brand scraping, yt-dlp video download, staticFile() enforcement, BGM sourcing, asset relevance checks |
 
-## Premium vs Template
+### Code Patterns (references/)
+| File | Components |
+|------|-----------|
+| `animations.md` | FadeIn, ScaleIn, SplitText, Typewriter, CountUp, AnimatedPath |
+| `components.md` | GradientMesh, GlassPanel, FilmGrain, ProductFrame, BrandIcon |
+| `audio.md` | Beat sync, voiceover ducking, audio layers |
+| `visual-effects.md` | ShimmerSweep, PulseGlow, PathDraw, ParticleField |
+| `lottie.md` | @remotion/lottie integration |
 
-| Premium | Template (avoid) |
-|---|---|
-| Logo animation opens the video | No logo or text-only |
-| BGM with beat-synced transitions | Silent video |
-| Real brand assets inside UI chrome | Pure code mockups only |
-| Per-character text stagger | Entire text block fades |
-| Spring physics | Linear easing |
-| Film grain + vignette + color grade | Perfectly clean digital |
+### Bundled Remotion API Reference (remotion-best-practices/)
+37 Remotion-specific rule files covering videos, audio, timing, transitions, compositions, fonts, images, charts, captions, 3D, maps, and more. No external dependency needed.
+
+### Scaffold (scaffold/)
+11-file ready-to-run Remotion project template with pre-wired TransitionSeries, animation components, background effects, and theme tokens.
+
+## Battle-Tested
+
+Built and validated across 8 real brand videos: Google Gemini, Linear, Mercury, Shopify, 1Password, Notion, Cursor, and Anthropic. Every rule comes from a real bug or a real design review — not theory.
 
 ## License
 
