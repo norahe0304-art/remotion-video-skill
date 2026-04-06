@@ -76,3 +76,76 @@ Empty space = amateur:
 - Card grids: use `gap` not `margin`
 - **Orbiting elements:** Calculate total center bounding box. Orbit must clear by ≥80px every side
 - **Test at fully-animated frame**, not just frame 0
+
+## Text Nowrap for Metrics & Labels
+
+In ProofScene / data-driven scenes, ALL metric labels, stat titles, and badge text MUST have `whiteSpace: "nowrap"`. At 1920×1080, card widths can squeeze multi-word labels onto two lines — this looks broken, not "responsive."
+
+```tsx
+// ✅ CORRECT — forced single line
+<span style={{ fontSize: 30, whiteSpace: "nowrap" }}>
+  {metric.label}
+</span>
+
+// ❌ WRONG — label wraps at card boundary
+<span style={{ fontSize: 30 }}>
+  {metric.label}
+</span>
+```
+
+Apply `whiteSpace: "nowrap"` to:
+- CountUp number containers
+- Metric label / sublabel text
+- Badge / pill text
+- Any single-line heading inside a constrained-width card
+
+## Metric Card Minimum Padding
+
+When text is `nowrap`, the card MUST have enough interior padding so text doesn't visually slam into the border. Cramped text inside a card = amateur.
+
+| Card Style | Min Width | Min Horizontal Padding |
+|------------|-----------|----------------------|
+| Metric card (number + label) | 400px | 48px per side |
+| Proof card with icon | 420px | 48px per side |
+| Simple stat column (no card bg) | no min | 0 (gap handles spacing) |
+
+```tsx
+// ✅ CORRECT — generous breathing room
+<div style={{
+  width: 420,
+  padding: "48px 48px",   // 48px horizontal = text breathes
+  gap: 20,                // 20px between number and label
+}}>
+
+// ❌ WRONG — text crashes into card edges
+<div style={{
+  width: 340,
+  padding: 32,            // only 32px = cramped with large text
+  gap: 12,                // too tight
+}}>
+```
+
+**Rule:** `card_content_width = width - (2 × horizontal_padding)` must be ≥ 300px for metric cards. If the longest label at its font-size exceeds this, widen the card.
+
+## SplitText in Flex-Column Parents
+
+**CRITICAL BUG:** SplitText MUST use `display: "flex"` (block-level), NOT `display: "inline-flex"`. In a flex-column parent (`flexDirection: "column"`), `inline-flex` elements collapse to minimum intrinsic width. With `flexWrap: "wrap"`, each character wraps to its own line — producing vertical text.
+
+```tsx
+// ✅ CORRECT — block-level flex, takes full parent width
+<span style={{ display: "flex", flexWrap: "wrap", ...style }}>
+
+// ❌ FATAL — collapses in flex-column parents, every char stacks vertically
+<span style={{ display: "inline-flex", flexWrap: "wrap", ...style }}>
+```
+
+When SplitText is centered in a column layout, pass `justifyContent: "center"` via the style prop.
+
+## Progress Lines Through Icons (Timeline UI)
+
+For step/progress indicators (e.g., order tracking: Placed → Packed → Shipped → Delivered):
+
+1. **Line zIndex must equal or exceed icon container zIndex** so the line visually passes through icons
+2. **Line endpoints must reach first/last icon centers** — calculate from item widths, not arbitrary padding
+3. **Icon backgrounds should be semi-transparent** (`color + "15"` not opaque) so the connecting line shows through
+4. **Progress line animates** with `interpolate` from 0% to 100% width, following icon activation timing

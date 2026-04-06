@@ -110,7 +110,7 @@ export const SplitText: React.FC<{
   const frame = useCurrentFrame();
 
   return (
-    <span style={{ display: "inline-flex", flexWrap: "wrap", ...style }}>
+    <span style={{ display: "flex", flexWrap: "wrap", ...style }}>
       {text.split("").map((char, i) => {
         const charDelay = delay + i * staggerFrames;
         const progress = spring({

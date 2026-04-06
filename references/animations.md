@@ -305,7 +305,7 @@ export const SplitText: React.FC<SplitTextProps> = ({
   const frame = useCurrentFrame();
 
   return (
-    <span style={{ display: "inline-flex", flexWrap: "wrap", ...style }}>
+    <span style={{ display: "flex", flexWrap: "wrap", ...style }}>
       {text.split("").map((char, i) => {
         const charDelay = delay + i * staggerFrames;
         const progress = spring({
@@ -342,7 +342,7 @@ export const SplitWords: React.FC<{
   const frame = useCurrentFrame();
 
   return (
-    <span style={{ display: "inline-flex", flexWrap: "wrap", gap: "0.3em", ...style }}>
+    <span style={{ display: "flex", flexWrap: "wrap", gap: "0.3em", ...style }}>
       {text.split(" ").map((word, i) => {
         const wordDelay = delay + i * staggerFrames;
         const progress = spring({
