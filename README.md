@@ -1,6 +1,59 @@
+<!--
+[INPUT]: Claude Code users evaluating installation and capability fit
+[OUTPUT]: High-level skill positioning, installation flow, and capability summary
+[POS]: remotion-video-skill 的对外说明; 解释它是什么、为什么存在、以及它和普通模板型视频技能的差别
+[PROTOCOL]: 变更时更新此头部，然后检查 AGENTS.md
+-->
+
 # Remotion Video Skill
 
-Generate premium 40-second product launch videos with Claude Code + Remotion. Give it a brand URL, get a video that looks like a $50k agency produced it.
+> ⚠️ **DEPRECATED — Superseded by [30x-video](https://github.com/norahe0304-art/30x-video).**
+>
+> This skill is no longer actively developed. Its taste philosophy
+> (`rules/taste.md`, `rules/finish-gate.md`, `rules/archetypes.md`) and
+> engine-neutral scripts (beat-sync, scene-constitution, evidence-model,
+> visual-audit, timing-audit, critique-scenes) have been ported to
+> 30x-video, which uses **Hyperframes** (Apache 2.0, HTML+GSAP) instead
+> of Remotion as the rendering engine.
+>
+> 30x-video adds:
+> - Refero MCP integration for design-library search
+> - Auto-composed voice over (multi-provider TTS) and BGM
+> - Confirmation Gate before render (zero rework)
+> - 5-dimensional Style Composer (replaces fixed templates)
+> - 50-video real-reference library (instead of abstract rules)
+>
+> Use 30x-video for new work. This repo remains for reference.
+
+---
+
+Generate premium 40-second product launch videos with Claude Code + Remotion. Give it a brand URL, and the skill builds around real website evidence, enterprise-grade taste, and product-faithful motion instead of generic SaaS templates.
+
+## URL-to-Video V2
+
+The skill now includes a real URL intake orchestrator. Preferred flow:
+
+```bash
+node --experimental-strip-types <installed-skill-dir>/scripts/url-to-video.ts https://brand.com --out ./brand-launch-video
+```
+
+It emits a **team-editable first cut project**, not a black-box final render. Every generated project includes:
+
+- `brand-report.json`
+- `scene-constitution.json`
+- `asset-manifest.json`
+- `story.md`
+- `review.md`
+- `src/generated/project-data.ts`
+- `public/brand/beat-map.json` when BGM harvest succeeds
+
+For regression coverage across canonical brands:
+
+```bash
+node --experimental-strip-types <installed-skill-dir>/scripts/benchmark-suite.ts --match stripe-fintech --offline --reuse-brand-dir ./public/brand --install --verify --render
+```
+
+This writes per-benchmark `benchmark-result.json` files plus one suite summary.
 
 ## Installation
 
@@ -21,6 +74,17 @@ Just tell Claude Code:
 > "Make a launch video for linear.app"
 
 The skill will scrape the brand, ask for your storyline, build animated UI mockups, add BGM, and render to MP4.
+In V2, the default is stronger: it can turn one URL into a mode-aware editable first cut, choose between `product-evidence` and `editorial`, keep audio `BGM-only`, generate a beat-map when music exists, and leave the last 10-20% of polish to Claude or a human in Remotion.
+
+## What Changed
+
+- Added a **three-layer constitution**: phenomenal evidence, archetype inference, and finish-gate philosophy
+- Added **enterprise design archetypes** abstracted from high-quality design references
+- Added an **Impeccable-style finish gate** to reject monoculture defaults before render
+- Upgraded the workflow so **screenshots are mandatory** and **video is preferred**
+- Added a **URL-to-video orchestrator** that emits reports, scene constitution, and a Remotion-ready project from one URL
+- Added an **executable benchmark suite runner** for 12+ canonical URLs across product-heavy and editorial-heavy brands
+- Kept the existing `SKILL.md -> rules -> scaffold` production chain intact
 
 ## What's Inside
 
@@ -47,9 +111,22 @@ The skill will scrape the brand, ask for your storyline, build animated UI mocku
 | File | What it covers |
 |------|---------------|
 | `taste.md` | 23-item AI slop blacklist, cognitive UX laws, self-review checklist |
-| `narrative.md` | 6-act structure, headline/UI rhythm, story arc |
+| `narrative.md` | 5-act evidence-driven structure, headline/UI rhythm, story arc |
 | `narrative-templates.md` | 7 industry templates (AI SaaS, FinTech, DevTool, E-Commerce, etc.) |
 | `workflow.md` | Brand scraping, yt-dlp video download, staticFile() enforcement, BGM sourcing, asset relevance checks |
+| `archetypes.md` | Enterprise design archetypes distilled from great product design references |
+| `finish-gate.md` | Impeccable-style finish protocol, anti-monoculture checks, render blocking criteria |
+
+### Orchestration & QA (scripts/ + benchmarks/)
+| File | What it covers |
+|------|---------------|
+| `scripts/url-to-video.ts` | One-URL intake, evidence scoring, mode selection, project generation |
+| `scripts/benchmark-suite.ts` | Batch benchmark runner with optional install, verify, and render passes |
+| `scripts/evidence-model.ts` | Evidence dimensions, report schema, manifest schema |
+| `scripts/scene-constitution.ts` | Archetype inference and 5-scene constitution generation |
+| `scripts/project-blueprint.ts` | Scaffold copying + generated output files |
+| `scripts/beat-sync.ts` | Beat-map generation for BGM-backed scene timing |
+| `benchmarks/manifest.json` | Canonical benchmark suite for regression testing |
 
 ### Code Patterns (references/)
 | File | Components |
@@ -64,7 +141,7 @@ The skill will scrape the brand, ask for your storyline, build animated UI mocku
 37 Remotion-specific rule files covering videos, audio, timing, transitions, compositions, fonts, images, charts, captions, 3D, maps, and more. No external dependency needed.
 
 ### Scaffold (scaffold/)
-11-file ready-to-run Remotion project template with pre-wired TransitionSeries, animation components, background effects, and theme tokens.
+Ready-to-run Remotion project template that acts as the first-cut receiver for `scene-constitution`, generated project data, and harvested brand evidence inside `public/brand/`.
 
 ## Battle-Tested
 
